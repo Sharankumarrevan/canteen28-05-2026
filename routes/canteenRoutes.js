@@ -7,32 +7,32 @@ console.log(Canteen);
 // =====================
 // CREATE
 // =====================
-router.post(
-    "/save",
-    async (req, res) => {
+router.post("/save", async (req, res) => {
 
-        try {
+    console.log("SAVE API HIT");
 
-            const data =
-                await Canteen.create(
-                    req.body
-                );
+    try {
 
-            res.status(201).json(
-                data
+        const data =
+            await Canteen.create(
+                req.body
             );
 
-        } catch (err) {
+        console.log(data);
 
-            res.status(500).json({
-                error: err.message
-            });
+        res.status(201).json(data);
 
-        }
+    } catch (err) {
+
+        console.log(err);
+
+        res.status(500).json({
+            error: err.message
+        });
 
     }
-);
 
+});
 // =====================
 // READ ALL
 // =====================

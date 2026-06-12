@@ -27,7 +27,22 @@ app.use(
   "/api/canteen",
   require("./routes/canteenRoutes")
 );
-
+app.use(
+  "/api/meal-details",
+  require("./routes/mealDetailsRoutes")
+);
+// app.use(
+//   "/api/meal-timing",
+//   require("./routes/mealTimingRoutes")
+// );
+// app.use(
+//   "/api/employee-consumption",
+//   require("./routes/employeeConsumptionRoutes")
+// );
+// app.use(
+//   "/api/special-days",
+//   require("./routes/specialDayRoutes")
+// );
 app.listen(5000, () => {
   console.log(
     "Server Running On Port 5000"

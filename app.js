@@ -12,11 +12,11 @@ params.get("id");
     organization: {},
     subsidiary: {},
     location: {},
-    mealDetails: {},
-    mealTimings: {},
-    subsidy: {},
-    employeeConsumption: {},
-    specialDays: {}
+    mealDetails: {}
+    // mealTimings: {},
+    // subsidy: {},
+    // employeeConsumption: {},
+    // specialDays: {}
    };
 
     const topOrg =
@@ -68,7 +68,7 @@ params.get("id");
                 : "visible";
 
         nextBtn.innerText =
-            currentModule === 7
+            currentModule === 1
                 ? "Save"
                 : "Next";
 
@@ -76,7 +76,7 @@ params.get("id");
 
     function updateTopTabs() {
 
-        if (currentModule <= 2) {
+        if (currentModule === 0) {
 
             topOrg.classList.add(
                 "text-blue-600",
@@ -212,7 +212,7 @@ params.get("id");
             "hidden"
         );
 
-        showModule(3);
+        showModule(1);
 
     }
 
@@ -268,132 +268,125 @@ params.get("id");
 
         });
 
-    backBtn.addEventListener(
-        "click",
-        () => {
+  backBtn.addEventListener(
+    "click",
+    () => {
+
+        if (currentModule > 0) {
+
+            showModule(
+                currentModule - 1
+            );
 
             if (
-                currentModule > 0
+                currentModule === 0
             ) {
 
-                showModule(
-                    currentModule - 1
+                orgSidebar.classList.remove(
+                    "hidden"
                 );
 
-                if (
-                    currentModule <= 2
-                ) {
+                canteenSidebar.classList.add(
+                    "hidden"
+                );
 
-                    orgSidebar.classList.remove(
-                        "hidden"
-                    );
+            } else {
 
-                    canteenSidebar.classList.add(
-                        "hidden"
-                    );
+                canteenSidebar.classList.remove(
+                    "hidden"
+                );
 
-                }
+                orgSidebar.classList.add(
+                    "hidden"
+                );
 
             }
 
         }
-    );
 
-    nextBtn.addEventListener(
-        "click",
-        () => {
-
-            if (
-                currentModule < 7
-            ) {
-
-                showModule(
-                    currentModule + 1
-                );
-
-                if (
-                    currentModule >= 3
-                ) {
-
-                    canteenSidebar.classList.remove(
-                        "hidden"
-                    );
-
-                    orgSidebar.classList.add(
-                        "hidden"
-                    );
-
-                }
-
-            } 
-            
- else {
-
-    console.log(
-        "FINAL DATA",
-        JSON.stringify(
-            canteenData,
-            null,
-            2
-        )
-    );
-
-const url =
-editId
-? `http://localhost:5000/api/canteen/${editId}`
-: "http://localhost:5000/api/canteen/save";
-
-const method =
-editId
-? "PUT"
-: "POST";
-
-fetch(
-    url,
-    {
-        method,
-
-        headers: {
-            "Content-Type":
-                "application/json"
-        },
-
-        body:
-            JSON.stringify(
-                canteenData
-            )
     }
-)
-    .then(res => res.json())
-    .then(data => {
+);
 
-       console.log(
-        "Saved Successfully",
-        data
+nextBtn.addEventListener("click", () => {
+
+    if (currentModule < 1) {
+
+        showModule(currentModule + 1);
+
+        if (currentModule >= 1) {
+
+            canteenSidebar.classList.remove(
+                "hidden"
+            );
+
+            orgSidebar.classList.add(
+                "hidden"
+            );
+
+        }
+
+    }
+    else {
+
+        console.log(
+            "FINAL DATA",
+            JSON.stringify(
+                canteenData,
+                null,
+                2
+            )
         );
 
-       localStorage.removeItem(
+        (async () => {
+
+         try {
+     console.log("Before Organization");
+
+const orgResult =
+    await saveOrganization();
+
+console.log(
+    "Organization Saved:",
+    orgResult
+);
+
+console.log("Before Meal Details");
+
+const mealResult =
+    await saveMealDetails();
+
+console.log(
+    "Meal Details Saved:",
+    mealResult
+);
+
+console.log("After Meal Details");
+    localStorage.removeItem(
         "canteenData"
-     );
+    );
 
-        window.location.href =
-         "records.html";
+    alert(
+        "Record Saved Successfully"
+    );
 
-    })
+    window.location.href =
+        "./records.html";
 
-    .catch(err => {
+}
+catch(err){
 
-        console.error(
-            "Save Error:",
-            err
-        );
-
-    });
+    console.error(
+        "Save Error:",
+        err
+    );
 
 }
 
-        }
-    );
+        })();
+
+    }
+
+});
 
 
     // ===============================
@@ -441,11 +434,6 @@ function updateFormData() {
     localStorage.setItem(
         "canteenData",
         JSON.stringify(canteenData)
-    );
-
-    console.log(
-        "Current JSON:",
-        canteenData
     );
 
 }
@@ -498,20 +486,57 @@ async function loadRecordForEdit(){
         canteenData.location =
         record.location || {};
 
-        canteenData.mealDetails =
-        record.mealDetails || {};
+    
+        // canteenData.mealTimings =
+        // record.mealTimings || {};
 
-        canteenData.mealTimings =
-        record.mealTimings || {};
+        // canteenData.subsidy =
+        // record.subsidy || {};
 
-        canteenData.subsidy =
-        record.subsidy || {};
+        // canteenData.employeeConsumption =
+        // record.employeeConsumption || {};
 
-        canteenData.employeeConsumption =
-        record.employeeConsumption || {};
+        // canteenData.specialDays =
+        // record.specialDays || {};
 
-        canteenData.specialDays =
-        record.specialDays || {};
+        canteenData.location =
+record.location || {};
+
+// Fetch Meal Details separately
+const mealResponse =
+await fetch(
+    `http://localhost:5000/api/meal-details/by-canteen/${editId}`
+);
+
+const meal =
+await mealResponse.json();
+
+console.log(
+    "Meal Details Loaded:",
+    meal
+);
+
+canteenData.mealDetails = {
+
+    mealTitle:
+        meal?.mealTitle || "",
+
+    fromTime:
+        meal?.fromTime || "",
+
+    toTime:
+        meal?.toTime || "",
+
+    rate:
+        meal?.rate || "",
+
+    subsidyPercentage:
+        meal?.subsidyPercentage || "",
+
+    mealsServed:
+        meal?.mealsServed || ""
+
+};
 
         populateForm();
 
@@ -574,6 +599,232 @@ if(editId){
 
 }
 
+async function saveOrganization() {
+
+    const payload = {
+
+        organization:
+            canteenData.organization,
+
+        subsidiary:
+            canteenData.subsidiary,
+
+        location:
+            canteenData.location
+
+    };
+
+    const url = editId
+        ? `http://localhost:5000/api/canteen/${editId}`
+        : "http://localhost:5000/api/canteen/save";
+
+    const method = editId
+        ? "PUT"
+        : "POST";
+
+    const response = await fetch(url, {
+        method,
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+
+        throw new Error(
+            "Organization Save Failed"
+        );
+
+    }
+
+    const data =
+        await response.json();
+
+    localStorage.setItem(
+        "canteenId",
+        data._id
+    );
+
+    return data;
+
+}
+
+async function saveMealDetails() {
+
+    const payload = {
+
+        canteenId:
+        localStorage.getItem(
+            "canteenId"
+        ),
+
+        ...canteenData.mealDetails
+
+    };
+
+    console.log(
+        "MEAL DETAILS PAYLOAD",
+        payload
+    );
+
+    const response =
+    await fetch(
+        "http://localhost:5000/api/meal-details/save",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type":
+                "application/json"
+            },
+            body:
+            JSON.stringify(payload)
+        }
+    );
+
+    const result =
+    await response.json();
+
+    console.log(
+        "MEAL DETAILS RESPONSE",
+        result
+    );
+
+    return result;
+
+}
+
+// async function saveEmployeeConsumption() {
+
+//     const payload = {
+
+//         canteenId:
+//             localStorage.getItem("canteenId"),
+
+//         ...canteenData.employeeConsumption
+
+//     };
+
+//     const response =
+//         await fetch(
+//             "http://localhost:5000/api/employee-consumption/save",
+//             {
+//                 method: "POST",
+//                 headers: {
+//                     "Content-Type":
+//                         "application/json"
+//                 },
+//                 body:
+//                     JSON.stringify(payload)
+//             }
+//         );
+
+//     return await response.json();
+// }
+
+
+// async function saveSpecialDays() {
+
+//     const payload = {
+
+//         canteenId:
+//             localStorage.getItem("canteenId"),
+
+//         ...canteenData.specialDays
+
+//     };
+
+//     const response =
+//         await fetch(
+//             "http://localhost:5000/api/special-days/save",
+//             {
+//                 method: "POST",
+//                 headers: {
+//                     "Content-Type":
+//                         "application/json"
+//                 },
+//                 body:
+//                     JSON.stringify(payload)
+//             }
+//         );
+
+//     return await response.json();
+// }
+
+// async function saveOrganization() {
+
+//     const payload = {
+
+//         organization:
+//             canteenData.organization,
+
+//         subsidiary:
+//             canteenData.subsidiary,
+
+//         location:
+//             canteenData.location
+
+//     };
+
+//     const response =
+//         await fetch(
+//             "http://localhost:5000/api/canteen/save",
+//             {
+//                 method: "POST",
+//                 headers: {
+//                     "Content-Type":
+//                         "application/json"
+//                 },
+//                 body:
+//                     JSON.stringify(payload)
+//             }
+//         );
+
+//     const data =
+//         await response.json();
+
+//     localStorage.setItem(
+//         "canteenId",
+//         data._id
+//     );
+
+//     return data;
+
+// }
+
+// async function saveMealTiming() {
+
+//     const payload = {
+
+//         canteenId:
+//             localStorage.getItem(
+//                 "canteenId"
+//             ),
+
+//         ...canteenData.mealTimings
+
+//     };
+
+//     const response =
+//         await fetch(
+//             "http://localhost:5000/api/meal-timing/save",
+//             {
+//                 method: "POST",
+//                 headers: {
+//                     "Content-Type":
+//                         "application/json"
+//                 },
+//                 body:
+//                     JSON.stringify(payload)
+//             }
+//         );
+
+//     return await response.json();
+
+// }
+
+
 showModule(0);
 
 })();
+

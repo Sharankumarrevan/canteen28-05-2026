@@ -2,15 +2,20 @@ const mongoose = require("mongoose");
 
 const canteenSchema = new mongoose.Schema({
 
-    organization: Object,
-    subsidiary: Object,
-    location: Object,
+    organization: {
+        organizationCode: String,
+        organizationName: String
+    },
 
-    mealDetails: Object,
-    mealTimings: Object,
-    subsidy: Object,
-    employeeConsumption: Object,
-    specialDays: Object
+    subsidiary: {
+        subsidiaryCode: String,
+        subsidiaryName: String
+    },
+
+    location: {
+        locationCode: String,
+        locationName: String
+    }
 
 }, {
     timestamps: true

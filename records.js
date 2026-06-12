@@ -1,5 +1,10 @@
 let allRecords = [];
 
+let currentPage = 1;
+
+const rowsPerPage = 5;
+
+
 async function loadRecords() {
 
     try {
@@ -25,6 +30,7 @@ async function loadRecords() {
 
 }
 
+
 function renderTable(data){
 
     const table =
@@ -34,61 +40,78 @@ function renderTable(data){
 
     table.innerHTML = "";
 
-    data.forEach(record => {
+    const start =
+    (currentPage - 1) *
+    rowsPerPage;
+
+    const end =
+    start + rowsPerPage;
+
+    const paginatedData =
+    data.slice(start, end);
+
+    paginatedData.forEach(record => {
 
         table.innerHTML += `
-        <tr class="border-b hover:bg-gray-50">
 
-            <td class="p-4">
-                ${record.organization?.organizationName || "-"}
-            </td>
+<tr class="border-b hover:bg-slate-50">
 
-            <td class="p-4">
-                ${record.subsidiary?.subsidiaryName || "-"}
-            </td>
+<td class="py-3 px-4">
+${record.organization?.organizationName || "-"}
+</td>
 
-            <td class="p-4">
-                ${record.location?.locationName || "-"}
-            </td>
+<td class="py-3 px-4">
+${record.subsidiary?.subsidiaryName || "-"}
+</td>
 
-            <td class="p-4">
-                ${record.mealDetails?.mealTitle || "-"}
-            </td>
+<td class="py-3 px-4">
+${record.location?.locationName || "-"}
+</td>
 
-            <td class="p-4 text-center">
+<td class="py-3 px-4">
+-
+</td>
 
-                <button
-                    onclick="viewRecord('${record._id}')"
-                    class="text-green-600 mr-3">
+<td class="py-3 px-4">
 
-                    👁
+<div class="flex gap-2">
 
-                </button>
+<button
+onclick="viewRecord('${record._id}')">
 
-                <button
-                    onclick="editRecord('${record._id}')"
-                    class="text-blue-600 mr-3">
+👁
 
-                    ✏️
+</button>
 
-                </button>
+<button
+onclick="editRecord('${record._id}')">
 
-                <button
-                    onclick="deleteRecord('${record._id}')"
-                    class="text-red-600">
+✏️
 
-                    🗑
+</button>
 
-                </button>
+<button
+onclick="deleteRecord('${record._id}')">
 
-            </td>
+🗑
 
-        </tr>
-        `;
+</button>
+
+</div>
+
+</td>
+
+</tr>
+
+`;
 
     });
 
+    updatePagination(data);
+
 }
+
+
 
 function editRecord(id){
 
@@ -119,70 +142,103 @@ async function deleteRecord(id){
 
 async function viewRecord(id){
 
-    const response =
-    await fetch(
-        `http://localhost:5000/api/canteen/${id}`
-    );
+    try{
 
-    const record =
-    await response.json();
+        const canteenResponse =
+        await fetch(
+            `http://localhost:5000/api/canteen/${id}`
+        );
 
-    document.getElementById(
-        "modalContent"
-    ).innerHTML = `
+        const canteen =
+        await canteenResponse.json();
 
-    <div class="space-y-4">
+        const mealResponse =
+        await fetch(
+            `http://localhost:5000/api/meal-details/by-canteen/${id}`
+        );
 
-        <div>
-            <h3 class="font-semibold">
-                Organization
+        const meal =
+        await mealResponse.json();
+
+        document.getElementById(
+            "modalContent"
+        ).innerHTML = `
+
+        <div class="space-y-3">
+
+            <h3 class="font-bold text-lg">
+                Organization Details
             </h3>
 
             <p>
-                ${record.organization?.organizationName || "-"}
+                <strong>Organization Code:</strong>
+                ${canteen.organization?.organizationCode || "-"}
             </p>
-        </div>
 
-        <div>
-            <h3 class="font-semibold">
-                Subsidiary
+            <p>
+                <strong>Organization Name:</strong>
+                ${canteen.organization?.organizationName || "-"}
+            </p>
+
+            <p>
+                <strong>Subsidiary:</strong>
+                ${canteen.subsidiary?.subsidiaryName || "-"}
+            </p>
+
+            <p>
+                <strong>Location:</strong>
+                ${canteen.location?.locationName || "-"}
+            </p>
+
+            <hr>
+
+            <h3 class="font-bold text-lg">
+                Meal Details
             </h3>
 
             <p>
-                ${record.subsidiary?.subsidiaryName || "-"}
+                <strong>Meal Title:</strong>
+                ${meal?.mealTitle || "-"}
             </p>
-        </div>
-
-        <div>
-            <h3 class="font-semibold">
-                Location
-            </h3>
 
             <p>
-                ${record.location?.locationName || "-"}
+                <strong>From Time:</strong>
+                ${meal?.fromTime || "-"}
             </p>
-        </div>
-
-        <div>
-            <h3 class="font-semibold">
-                Meal
-            </h3>
 
             <p>
-                ${record.mealDetails?.mealTitle || "-"}
+                <strong>To Time:</strong>
+                ${meal?.toTime || "-"}
             </p>
+
+            <p>
+                <strong>Rate:</strong>
+                ${meal?.rate || "-"}
+            </p>
+
+            <p>
+                <strong>Subsidy %:</strong>
+                ${meal?.subsidyPercentage || "-"}
+            </p>
+
+            <p>
+                <strong>Meals Served:</strong>
+                ${meal?.mealsServed || "-"}
+            </p>
+
         </div>
+        `;
 
-    </div>
-    `;
+        document
+        .getElementById("viewModal")
+        .classList.remove("hidden");
 
-    document
-    .getElementById(
-        "viewModal"
-    )
-    .classList.remove(
-        "hidden"
-    );
+    }
+    catch(err){
+
+        console.error(err);
+
+    }
 
 }
 
@@ -253,15 +309,15 @@ document
 
             }
 
-            if(field === "meal"){
+            // if(field === "meal"){
 
-                return (
-                    record.mealDetails?.mealTitle || ""
-                )
-                .toLowerCase()
-                .includes(value);
+            //     return (
+            //         record.mealDetails?.mealTitle || ""
+            //     )
+            //     .toLowerCase()
+            //     .includes(value);
 
-            }
+            // }
 
             return true;
 
@@ -273,5 +329,65 @@ document
 
     }
 );
+
+function updatePagination(data){
+
+    const totalPages =
+    Math.ceil(
+        data.length /
+        rowsPerPage
+    );
+
+    const startEntry =
+    ((currentPage - 1) *
+    rowsPerPage) + 1;
+
+    const endEntry =
+    Math.min(
+        currentPage *
+        rowsPerPage,
+        data.length
+    );
+
+    document.getElementById(
+        "paginationInfo"
+    ).innerText =
+
+        `Showing ${startEntry} to ${endEntry} of ${data.length} entries`;
+
+    const pageNumbers =
+    document.getElementById(
+        "pageNumbers"
+    );
+
+    pageNumbers.innerHTML = "";
+
+    for(
+        let i = 1;
+        i <= totalPages;
+        i++
+    ){
+
+        pageNumbers.innerHTML += `
+
+<button
+onclick="goToPage(${i})"
+class="${
+    i === currentPage
+    ? 'bg-black text-white'
+    : 'bg-white'
+}
+h-8 w-8 rounded border text-sm">
+
+${i}
+
+</button>
+
+`;
+
+    }
+
+}
+
 
 loadRecords();
